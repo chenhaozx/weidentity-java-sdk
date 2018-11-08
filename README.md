@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/chenhaozx/weidentity-java-sdk.svg?branch=tonychen-ci)](https://travis-ci.org/chenhaozx/weidentity-java-sdk)
 [![Build status](https://ci.appveyor.com/api/projects/status/rdvqn3c35o61hvjc?svg=true)](https://ci.appveyor.com/project/chenhaozx/weidentity-java-sdk)
 [![Coverage Status](https://coveralls.io/repos/github/chenhaozx/weidentity-java-sdk/badge.svg?branch=master)](https://coveralls.io/github/chenhaozx/weidentity-java-sdk?branch=master)
+[![codecov](https://codecov.io/gh/chenhaozx/weidentity-java-sdk/branch/master/graph/badge.svg)](https://codecov.io/gh/chenhaozx/weidentity-java-sdk)
 
 ## 总体介绍
 
