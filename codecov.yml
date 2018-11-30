@@ -2,8 +2,13 @@ coverage:
   status:
     project:
       default:
+<<<<<<< HEAD
        target: 60%
        threshold: 0.2
+=======
+       target: 65%
+       threshold: null
+>>>>>>> * modify codacy issue
        if_not_found: success
     patch:
       default:
