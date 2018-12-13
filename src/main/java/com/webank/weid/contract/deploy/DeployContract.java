@@ -65,7 +65,7 @@ public class DeployContract {
     /**
      * The Constant for default deploy contracts timeout.
      */
-    private static final Integer DEFAULT_DEPLOY_CONTRACTS_TIMEOUT_IN_SECONDS = 15;
+    private static final Integer DEFAULT_DEPLOY_CONTRACTS_TIMEOUT_IN_SECONDS = 13;
 
     /**
      * The context.
