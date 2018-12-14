@@ -7,6 +7,8 @@
 [![codecov](https://codecov.io/gh/webankopen/weidentity-java-sdk/branch/master/graph/badge.svg)](https://codecov.io/gh/webankopen/weidentity-java-sdk)
 [![Maven Central](https://img.shields.io/maven-central/v/com.webank/weidentity-java-sdk.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.webank%22%20AND%20a:%22weidentity-java-sdk%22)
 [![Latest release](https://img.shields.io/github/release/webankopen/weidentity-java-sdk.svg)](https://github.com/webankopen/weidentity-java-sdk/releases/latest)
+[![Latest release](https://img.shields.io/github/release/WeBankFinTech/weidentity-java-sdk.svg)](https://github.com/WeBankFinTech/weidentity-java-sdk/releases/latest)
+
 
 ---
 
