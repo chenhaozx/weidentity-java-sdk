@@ -11,6 +11,7 @@ branches:
   only:
   - master
   - develop
+  - /^v\d+\.\d+\.\d+$/
   
 language: java
 jdk:
@@ -37,3 +38,4 @@ deploy:
     skip_cleanup: true
     on:
       tags: true
+
