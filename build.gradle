@@ -4,7 +4,7 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'jacoco'
 
-version = "1.0.0"
+version = "1.0.3"
 
 // Specify JDK version - may vary in different scenarios
 sourceCompatibility = 1.8
@@ -14,6 +14,10 @@ targetCompatibility = 1.8
 // In this section you declare where to find the dependencies of your project
 repositories {
 
+	maven {
+        url "http://maven.aliyun.com/nexus/content/groups/public/"
+    }
+    mavenLocal()
     mavenCentral()
 }
 
@@ -72,10 +76,8 @@ List jackson = [
 // In this section you declare the dependencies for your production and test code
 dependencies {
     compile logger, spring, lombok, apache_commons, jackson
-    runtime logger, spring, lombok, apache_commons, jackson
     testCompile logger, spring, lombok, junit, jmockit
     compile files('lib/web3sdk.jar')
-    runtime files('lib/web3sdk.jar')
 }
 
 jacocoTestReport {

@@ -39,12 +39,6 @@ script:
 after_success:
   - bash <(curl -s https://codecov.io/bash)
   
-before_deploy:
-  # Set up git user name and tag this commit
-  - git config --local user.name "$USER_NAME"
-  - git config --local user.email "$USER_EMAIL"
-  - git tag $TRAVIS_TAG
-  
 deploy:
     provider: releases
     api_key: $GIT_REPO_TOKEN
@@ -53,7 +47,4 @@ deploy:
     skip_cleanup: true
     on:
       tags: true
-      branch: master
-      condition: $TRAVIS_PULL_REQUEST == "false"
-
-
+      all_branches: true
