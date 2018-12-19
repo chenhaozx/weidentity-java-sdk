@@ -13,8 +13,11 @@ targetCompatibility = 1.8
 [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
 // In this section you declare where to find the dependencies of your project
 repositories {
-
     mavenCentral()
+	mavenLocal()	
+	maven {
+        url "http://maven.aliyun.com/nexus/content/groups/public/"
+    }
 }
 
 List lombok = [
