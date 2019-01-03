@@ -321,8 +321,8 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
         }
         if (latestBlock == null) {
             logger.info(
-                    "[resolveTransaction]:get block by number :{} . latestBlock is null",
-                    blockNumber);
+                "[resolveTransaction]:get block by number :{} . latestBlock is null",
+                blockNumber);
             return;
         }
         List<Transaction> transList =
@@ -424,8 +424,16 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
                         + "modifying weid is not allowed.");
                 return new ResponseData<>(null, ErrorCode.WEID_PRIVATEKEY_DOES_NOT_MATCH);
             }
+            // set public key
+            SetPublicKeyArgs setPublicKeyArgs = buildupSetPublicKeyArgs(weId,
+                publicKey,
+                userWeIdPrivateKey);
+            ResponseData<Boolean> setPublicKeyResult = setPublicKey(setPublicKeyArgs);
+            if (!setPublicKeyResult.getResult()) {
+                return new ResponseData<>(null, ErrorCode.UNKNOW_ERROR);
+            }
         } catch (InterruptedException | ExecutionException e) {
-            logger.error("Set authenticate failed. Error message :{}", e);
+            logger.error("create weid failed. Error message :{}", e);
             return new ResponseData<>(null, ErrorCode.TRANSACTION_EXECUTE_ERROR);
         } catch (TimeoutException e) {
             return new ResponseData<>(null, ErrorCode.TRANSACTION_TIMEOUT);
@@ -485,18 +493,31 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
                     return new ResponseData<>(StringUtils.EMPTY,
                         ErrorCode.WEID_PRIVATEKEY_DOES_NOT_MATCH);
                 }
+                // set public key
+                SetPublicKeyArgs setPublicKeyArgs = buildupSetPublicKeyArgs(
+                    weId,
+                    publicKey,
+                    createWeIdArgs.getWeIdPrivateKey());
+                ResponseData<Boolean> setPublicKeyResult = setPublicKey(setPublicKeyArgs);
+                if (!setPublicKeyResult.getResult()) {
+                    return new ResponseData<>(StringUtils.EMPTY, ErrorCode.UNKNOW_ERROR);
+                }
             } catch (InterruptedException | ExecutionException e) {
                 logger.error("create weid failed. Error message :{}", e);
                 return new ResponseData<>(StringUtils.EMPTY,
                     ErrorCode.WEID_PRIVATEKEY_DOES_NOT_MATCH);
             } catch (TimeoutException e) {
+                logger.error("create weid Timeout. Error message :{}", e);
                 return new ResponseData<>(StringUtils.EMPTY, ErrorCode.TRANSACTION_TIMEOUT);
             } catch (PrivateKeyIllegalException e) {
+                logger.error("create weid failed because private key is illegal.", e);
                 return new ResponseData<>(StringUtils.EMPTY, e.getErrorCode());
             } catch (Exception e) {
+                logger.error("create weid with exception. Error message :{}", e);
                 return new ResponseData<>(StringUtils.EMPTY, ErrorCode.UNKNOW_ERROR);
             }
         } else {
+            logger.error("create weid failed, because no public key found.");
             return new ResponseData<>(StringUtils.EMPTY, ErrorCode.WEID_PUBLICKEY_INVALID);
         }
         return responseData;
@@ -659,15 +680,29 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
                 return new ResponseData<>(false, ErrorCode.WEID_PRIVATEKEY_DOES_NOT_MATCH);
             }
         } catch (InterruptedException | ExecutionException e) {
-            logger.error("Set public key failed. Error message :{}", e);
+            logger.error("Add public key failed. Error message :{}", e);
             return new ResponseData<>(false, ErrorCode.TRANSACTION_EXECUTE_ERROR);
         } catch (TimeoutException e) {
+            logger.error("Add public key timeout. Error message :{}", e);
             return new ResponseData<>(false, ErrorCode.TRANSACTION_TIMEOUT);
         } catch (PrivateKeyIllegalException e) {
+            logger.error("Add public key failed because private key is illegal. Error message :{}",
+                e);
             return new ResponseData<>(false, e.getErrorCode());
         } catch (Exception e) {
             return new ResponseData<>(false, ErrorCode.UNKNOW_ERROR);
         }
+    }
+
+    private SetPublicKeyArgs buildupSetPublicKeyArgs(String weId,
+        String publicKey,
+        WeIdPrivateKey userWeIdPrivateKey) {
+        SetPublicKeyArgs setPublicKeyArgs = new SetPublicKeyArgs();
+        setPublicKeyArgs.setOwner(weId);
+        setPublicKeyArgs.setPublicKey(publicKey);
+        setPublicKeyArgs.setWeId(weId);
+        setPublicKeyArgs.setUserWeIdPrivateKey(userWeIdPrivateKey);
+        return setPublicKeyArgs;
     }
 
     private boolean verifySetPublicKeyArgs(SetPublicKeyArgs setPublicKeyArgs) {
@@ -723,10 +758,13 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
                     return new ResponseData<>(false, ErrorCode.WEID_PRIVATEKEY_DOES_NOT_MATCH);
                 }
             } catch (InterruptedException | ExecutionException e) {
+                logger.error("Set weId service failed. Error message :{}", e);
                 return new ResponseData<>(false, ErrorCode.TRANSACTION_EXECUTE_ERROR);
             } catch (TimeoutException e) {
+                logger.error("Set weId service timeout. Error message :{}", e);
                 return new ResponseData<>(false, ErrorCode.TRANSACTION_TIMEOUT);
             } catch (PrivateKeyIllegalException e) {
+                logger.error("Set weId service failed, private key is illegal.", e);
                 return new ResponseData<>(false, e.getErrorCode());
             } catch (Exception e) {
                 logger.error("Set weId service failed. Error message :{}", e);
@@ -807,13 +845,18 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
                 logger.error("Set authenticate failed. Error message :{}", e);
                 return new ResponseData<>(false, ErrorCode.TRANSACTION_EXECUTE_ERROR);
             } catch (TimeoutException e) {
+                logger.error("Set authenticate timeout. Error message :{}", e);
                 return new ResponseData<>(false, ErrorCode.TRANSACTION_TIMEOUT);
             } catch (PrivateKeyIllegalException e) {
+                logger.error(
+                    "Set authenticate faild because private key is illegal. Error message :{}", e);
                 return new ResponseData<>(false, e.getErrorCode());
             } catch (Exception e) {
+                logger.error("Set authenticate failed. Error message :{}", e);
                 return new ResponseData<>(false, ErrorCode.UNKNOW_ERROR);
             }
         } else {
+            logger.error("Set authenticate failed, because the weid is empty.");
             return new ResponseData<>(false, ErrorCode.WEID_INVALID);
         }
     }
@@ -844,11 +887,14 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
                 .get(WeIdConstant.TRANSACTION_RECEIPT_TIMEOUT, TimeUnit.SECONDS);
             Boolean result = isExist.getValue();
             return new ResponseData<>(result, ErrorCode.SUCCESS);
-        } catch (InterruptedException | ExecutionException e1) {
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("Check weId existence failed. Error message :{}", e);
             return new ResponseData<>(false, ErrorCode.TRANSACTION_EXECUTE_ERROR);
         } catch (TimeoutException e) {
+            logger.error("Check weId existence timeout. Error message :{}", e);
             return new ResponseData<>(false, ErrorCode.TRANSACTION_TIMEOUT);
         } catch (Exception e) {
+            logger.error("Check weId existence failed. Error message :{}", e);
             return new ResponseData<>(false, ErrorCode.UNKNOW_ERROR);
         }
     }
