@@ -1,13 +1,7 @@
 sudo: false
 dist: trusty
 
-# blocklist
-branches:
-  except:
-  - /^release.*/
-  - /^feature.*/
-
-# safelist
+# safelist, worked on develop, master and tag branch
 branches:
   only:
   - master
@@ -15,6 +9,7 @@ branches:
   - /^v\d+\.\d+\.\d+$/
 
 language: java
+
 jdk:
   - oraclejdk8
 
@@ -28,13 +23,29 @@ cache:
     - $HOME/.gradle/wrapper/
 
 before_install:
+  - [skip travis] README
+  - [skip travis] CHANGELOG
+  - |
+    #check if test task need to be run
+    IS_RUN_TESTS=true
+    #check if build task need to be run(normally, true if push a tag, or a pr to develop)
+    is_RUN_BUILD=true
+    # if merge to master from develop, no need to run build task
+    if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST_BRANCH" == "develop" ]]; then
+        IS_RUN_TESTS=false
+    fi
   - gradle wrapper
 
 script:
-  - chmod +x ci/script/build-ci.sh
-  - ci/script/build-ci.sh
-  - travis_wait 30 ./gradlew check
-  - ./gradlew jacocoTestReport
+  -|
+    if [ "$is_RUN_BUILD" = "true" ] ; then
+        chmod +x ci/script/build-ci.sh
+        ci/script/build-ci.sh
+        if [ "$IS_RUN_TESTS" = "true" ] ; then
+            travis_wait 30 ./gradlew check
+            ./gradlew jacocoTestReport
+        fi
+    fi
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

@@ -38,7 +38,7 @@ function gradle_build_sdk()
     if [ -d ${java_source_code_dir}/dist ]; then
         rm -rf ${java_source_code_dir}/dist
     fi
-    gradle clean build -x test
+    gradle clean jar
     echo "compile java code done."
 }
 

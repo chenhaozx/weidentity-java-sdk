@@ -121,6 +121,10 @@ sourceSets {
     }
 }
 
+processResources {
+	exclude '**/**'
+}
+
 jar {
     destinationDir file('dist/app')
     archiveName project.name +'-'+version+'.jar'
