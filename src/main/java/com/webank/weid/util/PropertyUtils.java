@@ -1,0 +1,70 @@
+/*
+ *       Copyright© (2018) WeBank Co., Ltd.
+ *
+ *       This file is part of weidentity-java-sdk.
+ *
+ *       weidentity-java-sdk is free software: you can redistribute it and/or modify
+ *       it under the terms of the GNU Lesser General Public License as published by
+ *       the Free Software Foundation, either version 3 of the License, or
+ *       (at your option) any later version.
+ *
+ *       weidentity-java-sdk is distributed in the hope that it will be useful,
+ *       but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *       GNU Lesser General Public License for more details.
+ *
+ *       You should have received a copy of the GNU Lesser General Public License
+ *       along with weidentity-java-sdk.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package com.webank.weid.util;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * tools for properties.
+ *
+ * @author tonychen 2019年3月21日
+ */
+public abstract class PropertyUtils {
+
+    private static final Logger logger = LoggerFactory.getLogger(PropertyUtils.class);
+
+    private static Properties prop = new Properties();
+
+    /**
+     * load properties from specific config file.
+     *
+     * @param filePath properties config file.
+     */
+    public static void loadProperties(String filePath) {
+
+        InputStream in;
+        try {
+            in = PropertyUtils.class.getClassLoader().getResourceAsStream(filePath);
+            prop.load(in);
+            in.close();
+        } catch (FileNotFoundException e) {
+            logger.error("Load properties failed with exception.", e);
+        } catch (IOException e) {
+            logger.error("Load properties failed with exception.", e);
+        }
+
+    }
+
+    /**
+     * get property value by specific key.
+     *
+     * @param key property key
+     */
+    public static String getProperty(String key) {
+        return prop.getProperty(key);
+    }
+
+}

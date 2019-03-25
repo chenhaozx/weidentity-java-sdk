@@ -166,7 +166,7 @@ public enum ErrorCode {
      * The credential credential verify signature is exception.
      */
     CREDENTIAL_EXCEPTION_VERIFYSIGNATURE(100419, "credential verify signature exception"),
-    
+
     /**
      * The credential evidence contract failure: illegal input.
      */
@@ -344,6 +344,11 @@ public enum ErrorCode {
      * weidentity data type case exceptions or error.
      */
     DATA_TYPE_CASE_ERROR(160008, "data type cast exception error, please check the error log."),
+
+    /**
+     * sql execute failed.
+     */
+    SQL_EXECUTE_FAILED(160009, "sql execute failed."),
 
     /**
      * other uncatched exceptions or error.
