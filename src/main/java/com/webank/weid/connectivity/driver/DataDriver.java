@@ -1,5 +1,5 @@
 /*
- *       Copyright© (2018) WeBank Co., Ltd.
+ *       Copyright© (2018-2019) WeBank Co., Ltd.
  *
  *       This file is part of weidentity-java-sdk.
  *
@@ -33,7 +33,7 @@ public interface DataDriver {
     /**
      * save data to storage.
      *
-     * @param id the key to .
+     * @param id the key of the data.
      * @param data which you want to store to the storage.
      * @return execute status of the "save" operation.
      */
@@ -42,7 +42,8 @@ public interface DataDriver {
     /**
      * batch save data to storage.
      *
-     * @param ids list of key
+     * @param ids list of keys
+     * @param dataList list of data
      * @return execute status of the "save" operation.
      */
     public ResponseData<Integer> batchSave(List<String> ids, List<String> dataList);
@@ -50,7 +51,7 @@ public interface DataDriver {
     /**
      * query data from storage by id.
      *
-     * @param id the key you store with.
+     * @param id the key of the data.
      * @return the data you stored.
      */
     public ResponseData<String> getData(String id);
@@ -58,7 +59,7 @@ public interface DataDriver {
     /**
      * delete data by id.
      * 
-     * @param id the key you store with.
+     * @param id the key of the data.
      * @return the data you stored.
      */
     public ResponseData<Integer> delete(String id);

@@ -65,4 +65,9 @@ public final class DataDriverConstant {
      * sql index.
      */
     public static final int SQL_INDEX_SECOND = 2;
+    
+    /**
+     * sql index.
+     */
+    public static final int SQL_INDEX_THIRD = 3;
 }

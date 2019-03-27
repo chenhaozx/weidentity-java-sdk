@@ -374,7 +374,7 @@ public class CredentialServiceImpl extends BaseService implements CredentialServ
             return new ResponseData<>(credentialResult, checkResp);
         }
 
-        //step 2: convet values of claim to hash by disclosure status
+        //step 2: convert values of claim to hash by disclosure status
         Map<String, Object> claim = credential.getClaim();
         Map<String, Object> hashMap = new HashMap<String, Object>(claim);
 

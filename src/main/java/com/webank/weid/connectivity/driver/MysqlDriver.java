@@ -1,5 +1,5 @@
 /*
- *       Copyright© (2018) WeBank Co., Ltd.
+ *       Copyright© (2018-2019) WeBank Co., Ltd.
  *
  *       This file is part of weidentity-java-sdk.
  *
@@ -24,6 +24,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,12 +54,13 @@ public class MysqlDriver implements DataDriver {
     /**
      * sql for save.
      */
-    private static final String SQL_SAVE = "insert into sdk_all_data(id,data) values(?,?)";
+    private static final String SQL_SAVE = "insert into sdk_all_data(id, data) values(?,?)";
 
     /**
      * sql for update.
      */
-    private static final String SQL_UPDATE = "update sdk_all_data set () where id = ?";
+    private static final String SQL_UPDATE = "update sdk_all_data set data = ?, updated=? where "
+        + "id = ?";
 
     /**
      * sql for delete.
@@ -97,7 +100,7 @@ public class MysqlDriver implements DataDriver {
             logger.error("Initialize failed with exception ", e);
         }
     }
-    
+
     @Override
     public ResponseData<String> getData(String id) {
 
@@ -160,6 +163,7 @@ public class MysqlDriver implements DataDriver {
             for (int i = 0; i < ids.size(); i++) {
                 psts.setString(DataDriverConstant.SQL_INDEX_FIRST, ids.get(i));
                 psts.setString(DataDriverConstant.SQL_INDEX_SECOND, dataList.get(i));
+                psts.addBatch();
             }
 
             psts.executeBatch();
@@ -201,11 +205,16 @@ public class MysqlDriver implements DataDriver {
     @Override
     public ResponseData<Integer> update(String id, String data) {
 
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String date = simpleDateFormat.format(new Date());
+
         ResponseData<Integer> result = new ResponseData<Integer>();
         PreparedStatement ps;
         try {
             ps = connection.prepareStatement(SQL_UPDATE);
-            ps.setString(DataDriverConstant.SQL_INDEX_FIRST, id);
+            ps.setString(DataDriverConstant.SQL_INDEX_FIRST, data);
+            ps.setString(DataDriverConstant.SQL_INDEX_SECOND, date);
+            ps.setString(DataDriverConstant.SQL_INDEX_THIRD, id);
             int rs = ps.executeUpdate();
             ps.close();
             result.setErrorCode(ErrorCode.SUCCESS);
@@ -220,7 +229,6 @@ public class MysqlDriver implements DataDriver {
 
     /**
      * close mysql connection.
-     * 
      */
     public void close() {
 
