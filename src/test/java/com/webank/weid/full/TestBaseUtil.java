@@ -33,14 +33,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jackson.JsonLoader;
 import org.apache.commons.lang3.StringUtils;
-import org.bcos.web3j.crypto.ECKeyPair;
-import org.bcos.web3j.crypto.Keys;
+import org.fisco.bcos.web3j.crypto.ECKeyPair;
+import org.fisco.bcos.web3j.crypto.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jackson.JsonLoader;
 import com.webank.weid.common.LogUtil;
 import com.webank.weid.common.PasswordKey;
 import com.webank.weid.constant.JsonSchemaConstant;

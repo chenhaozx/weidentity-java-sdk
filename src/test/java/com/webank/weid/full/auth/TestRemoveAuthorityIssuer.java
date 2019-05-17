@@ -23,10 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import mockit.Mock;
-import mockit.MockUp;
-import org.bcos.web3j.abi.datatypes.Address;
-import org.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.fisco.bcos.web3j.abi.datatypes.Address;
+import org.fisco.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -42,6 +40,9 @@ import com.webank.weid.protocol.request.RegisterAuthorityIssuerArgs;
 import com.webank.weid.protocol.request.RemoveAuthorityIssuerArgs;
 import com.webank.weid.protocol.response.CreateWeIdDataResult;
 import com.webank.weid.protocol.response.ResponseData;
+
+import mockit.Mock;
+import mockit.MockUp;
 
 /**
  * removeAuthorityIssuer method for testing AuthorityIssuerService.

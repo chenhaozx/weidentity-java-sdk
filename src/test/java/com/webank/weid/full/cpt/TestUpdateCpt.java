@@ -23,21 +23,19 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.Future;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import mockit.Mock;
-import mockit.MockUp;
-import org.bcos.web3j.abi.datatypes.Address;
-import org.bcos.web3j.abi.datatypes.StaticArray;
-import org.bcos.web3j.abi.datatypes.generated.Bytes32;
-import org.bcos.web3j.abi.datatypes.generated.Int256;
-import org.bcos.web3j.abi.datatypes.generated.Uint256;
-import org.bcos.web3j.abi.datatypes.generated.Uint8;
-import org.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.fisco.bcos.web3j.abi.datatypes.Address;
+import org.fisco.bcos.web3j.abi.datatypes.StaticArray;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Bytes32;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Int256;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Uint256;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Uint8;
+import org.fisco.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.webank.weid.common.LogUtil;
 import com.webank.weid.common.PasswordKey;
 import com.webank.weid.constant.ErrorCode;
@@ -52,6 +50,9 @@ import com.webank.weid.protocol.request.CptStringArgs;
 import com.webank.weid.protocol.response.CreateWeIdDataResult;
 import com.webank.weid.protocol.response.ResponseData;
 import com.webank.weid.util.WeIdUtils;
+
+import mockit.Mock;
+import mockit.MockUp;
 
 /**
  * updateCpt method for testing CptService.

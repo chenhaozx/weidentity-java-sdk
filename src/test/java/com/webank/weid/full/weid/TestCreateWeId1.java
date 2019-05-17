@@ -23,12 +23,10 @@ import java.security.NoSuchProviderException;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import mockit.Mock;
-import mockit.MockUp;
 import org.apache.commons.lang3.StringUtils;
-import org.bcos.web3j.crypto.ECKeyPair;
-import org.bcos.web3j.crypto.Keys;
-import org.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.fisco.bcos.web3j.crypto.ECKeyPair;
+import org.fisco.bcos.web3j.crypto.Keys;
+import org.fisco.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -42,6 +40,9 @@ import com.webank.weid.exception.WeIdBaseException;
 import com.webank.weid.full.TestBaseServcie;
 import com.webank.weid.protocol.response.CreateWeIdDataResult;
 import com.webank.weid.protocol.response.ResponseData;
+
+import mockit.Mock;
+import mockit.MockUp;
 
 /**
  * non parametric createWeId method for testing WeIdService.

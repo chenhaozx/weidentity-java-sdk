@@ -22,9 +22,9 @@ package com.webank.weid.rpc.callback;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.bcos.channel.client.ChannelPushCallback;
-import org.bcos.channel.dto.ChannelPush;
-import org.bcos.channel.dto.ChannelResponse;
+import org.fisco.bcos.channel.client.ChannelPushCallback;
+import org.fisco.bcos.channel.dto.ChannelPush;
+import org.fisco.bcos.channel.dto.ChannelResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

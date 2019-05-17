@@ -22,19 +22,18 @@ package com.webank.weid.service;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.bcos.channel.client.Service;
-import org.bcos.channel.dto.ChannelRequest;
-import org.bcos.channel.dto.ChannelResponse;
-import org.bcos.contract.tools.ToolConf;
-import org.bcos.web3j.crypto.Credentials;
-import org.bcos.web3j.crypto.ECKeyPair;
-import org.bcos.web3j.crypto.GenCredential;
-import org.bcos.web3j.protocol.Web3j;
-import org.bcos.web3j.protocol.channel.ChannelEthereumService;
-import org.bcos.web3j.tx.Contract;
+import org.fisco.bcos.channel.client.Service;
+import org.fisco.bcos.channel.dto.ChannelRequest;
+import org.fisco.bcos.channel.dto.ChannelResponse;
+import org.fisco.bcos.web3j.crypto.Credentials;
+import org.fisco.bcos.web3j.crypto.ECKeyPair;
+import org.fisco.bcos.web3j.crypto.Keys;
+import org.fisco.bcos.web3j.protocol.Web3j;
+import org.fisco.bcos.web3j.protocol.channel.ChannelEthereumService;
+import org.fisco.bcos.web3j.tx.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -46,9 +45,9 @@ import com.webank.weid.constant.WeIdConstant;
 import com.webank.weid.exception.InitWeb3jException;
 import com.webank.weid.exception.LoadContractException;
 import com.webank.weid.exception.PrivateKeyIllegalException;
-import com.webank.weid.protocol.amop.base.AmopBaseMsgArgs;
 import com.webank.weid.protocol.amop.AmopRequestBody;
 import com.webank.weid.protocol.amop.CheckAmopMsgHealthArgs;
+import com.webank.weid.protocol.amop.base.AmopBaseMsgArgs;
 import com.webank.weid.protocol.response.AmopNotifyMsgResult;
 import com.webank.weid.protocol.response.ResponseData;
 import com.webank.weid.rpc.callback.OnNotifyCallback;
@@ -94,7 +93,6 @@ public abstract class BaseService {
 
     private static boolean initWeb3j() {
 
-//        Service service = context.getBean(Service.class);
         //initialize amop
         if (!initAmop(service)) {
             logger.error("[BaseService] initialize amop failed.");
@@ -129,7 +127,7 @@ public abstract class BaseService {
         );
 
         //设置topic，支持多个topic
-        List<String> topics = new ArrayList<String>();
+        Set<String> topics = new HashSet<String>();
         topics.add(orgId);
         service.setTopics(topics);
 
@@ -143,10 +141,18 @@ public abstract class BaseService {
      * @return true, if successful
      */
     private static boolean initCredentials() {
-        ToolConf toolConf = context.getBean(ToolConf.class);
-        logger.info("begin to init credentials");
-        credentials = GenCredential.create(toolConf.getPrivKey());
+        
+        ECKeyPair keyPair = null;
 
+        try {
+            keyPair = Keys.createEcKeyPair();
+        } catch (Exception e) {
+            logger.error("Create weId failed.", e);
+            return false;
+        }
+
+        credentials = Credentials.create(keyPair);
+        
         if (credentials == null) {
             logger.error("[BaseService] credentials init failed. ");
             return false;

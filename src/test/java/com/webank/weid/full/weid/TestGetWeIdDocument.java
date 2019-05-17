@@ -23,11 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import mockit.Mock;
-import mockit.MockUp;
-import org.bcos.web3j.abi.datatypes.Address;
-import org.bcos.web3j.abi.datatypes.generated.Bytes32;
-import org.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.fisco.bcos.web3j.abi.datatypes.Address;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Bytes32;
+import org.fisco.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -45,6 +43,9 @@ import com.webank.weid.protocol.base.WeIdDocument;
 import com.webank.weid.protocol.response.CreateWeIdDataResult;
 import com.webank.weid.protocol.response.ResponseData;
 import com.webank.weid.util.DataTypetUtils;
+
+import mockit.Mock;
+import mockit.MockUp;
 
 /**
  * getWeIdDocument method for testing WeIdService.

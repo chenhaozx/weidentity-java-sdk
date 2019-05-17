@@ -19,8 +19,30 @@
 
 package com.webank.weid.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.fisco.bcos.web3j.abi.EventEncoder;
+import org.fisco.bcos.web3j.crypto.ECKeyPair;
+import org.fisco.bcos.web3j.crypto.Keys;
+import org.fisco.bcos.web3j.protocol.core.DefaultBlockParameterNumber;
+import org.fisco.bcos.web3j.protocol.core.methods.response.BcosBlock;
+import org.fisco.bcos.web3j.protocol.core.methods.response.BcosTransactionReceipt;
+import org.fisco.bcos.web3j.protocol.core.methods.response.Log;
+import org.fisco.bcos.web3j.protocol.core.methods.response.Transaction;
+import org.fisco.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.weid.config.ContractConfig;
 import com.webank.weid.constant.ErrorCode;
 import com.webank.weid.constant.ResolveEventLogStatus;
@@ -48,43 +70,9 @@ import com.webank.weid.protocol.response.ResolveEventLogResult;
 import com.webank.weid.protocol.response.ResponseData;
 import com.webank.weid.rpc.WeIdService;
 import com.webank.weid.service.BaseService;
-import com.webank.weid.util.DataTypetUtils;
 import com.webank.weid.util.DateUtils;
 import com.webank.weid.util.TransactionUtils;
 import com.webank.weid.util.WeIdUtils;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.bcos.web3j.abi.EventEncoder;
-import org.bcos.web3j.abi.TypeReference;
-import org.bcos.web3j.abi.datatypes.Address;
-import org.bcos.web3j.abi.datatypes.Bool;
-import org.bcos.web3j.abi.datatypes.DynamicBytes;
-import org.bcos.web3j.abi.datatypes.Event;
-import org.bcos.web3j.abi.datatypes.generated.Bytes32;
-import org.bcos.web3j.abi.datatypes.generated.Int256;
-import org.bcos.web3j.abi.datatypes.generated.Uint256;
-import org.bcos.web3j.crypto.ECKeyPair;
-import org.bcos.web3j.crypto.Keys;
-import org.bcos.web3j.protocol.core.DefaultBlockParameterNumber;
-import org.bcos.web3j.protocol.core.methods.response.EthBlock;
-import org.bcos.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
-import org.bcos.web3j.protocol.core.methods.response.Log;
-import org.bcos.web3j.protocol.core.methods.response.Transaction;
-import org.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 /**
  * Service implementations for operations on WeIdentity DID.
@@ -122,23 +110,9 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
     static {
         // initialize the event topic
         topicMap = new HashMap<String, String>();
-        final Event event =
-            new Event(
-                WeIdEventConstant.WEID_EVENT_ATTRIBUTE_CHANGE,
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {
-                }),
-                Arrays.<TypeReference<?>>asList(
-                    new TypeReference<Bytes32>() {
-                    },
-                    new TypeReference<DynamicBytes>() {
-                    },
-                    new TypeReference<Uint256>() {
-                    },
-                    new TypeReference<Int256>() {
-                    })
-            );
+           
         topicMap.put(
-            EventEncoder.encode(event),
+            EventEncoder.encode(WeIdContract.WEIDATTRIBUTECHANGED_EVENT),
             WeIdEventConstant.WEID_EVENT_ATTRIBUTE_CHANGE
         );
     }
@@ -165,7 +139,7 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
         WeIdDocument result) {
 
         List<WeIdAttributeChangedEventResponse> eventlog =
-            WeIdContract.getWeIdAttributeChangedEvents(receipt);
+        	weIdContract.getWeIdAttributeChangedEvents(receipt);
         ResolveEventLogResult response = new ResolveEventLogResult();
 
         if (CollectionUtils.isEmpty(eventlog)) {
@@ -181,7 +155,7 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
 
         String identity = res.identity.toString();
         if (result.getUpdated() == null) {
-            long timeStamp = res.updated.getValue().longValue();
+            long timeStamp = res.updated.longValue();
             result.setUpdated(timeStamp);
         }
         String weAddress = WeIdUtils.convertWeIdToAddress(weId);
@@ -190,9 +164,9 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
             return response;
         }
 
-        String key = DataTypetUtils.bytes32ToString(res.key);
-        String value = DataTypetUtils.dynamicBytesToString(res.value);
-        int previousBlock = res.previousBlock.getValue().intValue();
+        String key = new String(res.key);
+        String value = new String(res.value);
+        int previousBlock = res.previousBlock.intValue();
         buildupWeIdAttribute(key, value, weId, result);
 
         response.setPreviousBlock(previousBlock);
@@ -320,11 +294,11 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
         int previousBlock = blockNumber;
         while (previousBlock != STOP_RESOLVE_BLOCK_NUMBER) {
             int currentBlockNumber = previousBlock;
-            EthBlock latestBlock = null;
+            BcosBlock latestBlock = null;
             try {
                 latestBlock =
                     getWeb3j()
-                        .ethGetBlockByNumber(
+                        .getBlockByNumber(
                             new DefaultBlockParameterNumber(currentBlockNumber),
                             true
                         )
@@ -356,7 +330,7 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
                 for (Transaction transaction : transList) {
                     String transHash = transaction.getHash();
 
-                    EthGetTransactionReceipt rec1 = getWeb3j().ethGetTransactionReceipt(transHash)
+                    BcosTransactionReceipt rec1 = getWeb3j().getTransactionReceipt(transHash)
                         .send();
                     TransactionReceipt receipt = rec1.getTransactionReceipt().get();
                     List<Log> logs = rec1.getResult().getLogs();
@@ -422,19 +396,18 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
             weIdContractAddress,
             privateKey,
             WeIdContract.class);
-        Future<TransactionReceipt> future =
-            weIdContract.setAttribute(
-                new Address(WeIdUtils.convertWeIdToAddress(weId)),
-                DataTypetUtils.stringToBytes32(WeIdConstant.WEID_DOC_CREATED),
-                DataTypetUtils.stringToDynamicBytes(DateUtils.getCurrentTimeStampString()),
-                DateUtils.getCurrentTimeStampInt256()
-            );
+        
 
         try {
-            TransactionReceipt receipt =
-                future.get(WeIdConstant.TRANSACTION_RECEIPT_TIMEOUT, TimeUnit.SECONDS);
+        	TransactionReceipt receipt =
+                    weIdContract.setAttribute(
+                        WeIdUtils.convertWeIdToAddress(weId),
+                        WeIdConstant.WEID_DOC_CREATED.getBytes(),
+                        DateUtils.getCurrentTimeStampString().getBytes(),
+                        BigInteger.valueOf(System.currentTimeMillis())
+                    ).send();
             List<WeIdAttributeChangedEventResponse> response =
-                WeIdContract.getWeIdAttributeChangedEvents(receipt);
+            		weIdContract.getWeIdAttributeChangedEvents(receipt);
             if (CollectionUtils.isEmpty(response)) {
                 logger.error(
                     "The input private key does not match the current weid, operation of "
@@ -489,18 +462,16 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
                     weIdContractAddress,
                     privateKey,
                     WeIdContract.class);
-                Future<TransactionReceipt> future =
-                    weIdContract.setAttribute(
-                        new Address(WeIdUtils.convertWeIdToAddress(weId)),
-                        DataTypetUtils.stringToBytes32(WeIdConstant.WEID_DOC_CREATED),
-                        DataTypetUtils.stringToDynamicBytes(DateUtils.getCurrentTimeStampString()),
-                        DateUtils.getCurrentTimeStampInt256()
-                    );
-
                 TransactionReceipt receipt =
-                    future.get(WeIdConstant.TRANSACTION_RECEIPT_TIMEOUT, TimeUnit.SECONDS);
+                    weIdContract.setAttribute(
+                        WeIdUtils.convertWeIdToAddress(weId),
+                        WeIdConstant.WEID_DOC_CREATED.getBytes(),
+                        DateUtils.getCurrentTimeStampString().getBytes(),
+                        BigInteger.valueOf(System.currentTimeMillis())
+                    ).send();
+
                 List<WeIdAttributeChangedEventResponse> response =
-                    WeIdContract.getWeIdAttributeChangedEvents(receipt);
+                		weIdContract.getWeIdAttributeChangedEvents(receipt);
                 if (CollectionUtils.isEmpty(response)) {
                     return new ResponseData<>(StringUtils.EMPTY,
                         ErrorCode.WEID_PRIVATEKEY_DOES_NOT_MATCH);
@@ -538,7 +509,7 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
             TransactionReceipt transactionReceipt = TransactionUtils
                 .sendTransaction(getWeb3j(), transactionHex);
             List<WeIdAttributeChangedEventResponse> response =
-                WeIdContract.getWeIdAttributeChangedEvents(transactionReceipt);
+                weIdContract.getWeIdAttributeChangedEvents(transactionReceipt);
             if (!CollectionUtils.isEmpty(response)) {
                 return new ResponseData<>(Boolean.TRUE.toString(), ErrorCode.SUCCESS);
             }
@@ -571,10 +542,7 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
             String identityAddr = WeIdUtils.convertWeIdToAddress(weId);
             latestBlockNumber =
                 weIdContract
-                    .getLatestRelatedBlock(new Address(identityAddr))
-                    .get(WeIdConstant.TRANSACTION_RECEIPT_TIMEOUT, TimeUnit.SECONDS)
-                    .getValue()
-                    .intValue();
+                    .getLatestRelatedBlock(identityAddr).send().intValue();
             if (0 == latestBlockNumber) {
                 return new ResponseData<>(null, ErrorCode.WEID_DOES_NOT_EXIST);
             }
@@ -691,18 +659,13 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
                 privateKey,
                 WeIdContract.class
             );
-            Future<TransactionReceipt> future =
-                weIdContract.setAttribute(
-                    new Address(weAddress),
-                    DataTypetUtils.stringToBytes32(attributeKey),
-                    DataTypetUtils.stringToDynamicBytes(
-                        new StringBuffer().append(pubKey).append("/").append(owner).toString()),
-                    DateUtils.getCurrentTimeStampInt256()
-                );
-            TransactionReceipt receipt =
-                future.get(WeIdConstant.TRANSACTION_RECEIPT_TIMEOUT, TimeUnit.SECONDS);
+            byte[] attrValue = new StringBuffer().append(pubKey).append("/").append(owner).toString().getBytes();
+            BigInteger updated = BigInteger.valueOf(System.currentTimeMillis());
+            TransactionReceipt transactionReceipt =
+            		weIdContract.setAttribute(weAddress, attributeKey.getBytes(), attrValue, updated).send();
             List<WeIdAttributeChangedEventResponse> response =
-                WeIdContract.getWeIdAttributeChangedEvents(receipt);
+            		weIdContract.getWeIdAttributeChangedEvents(transactionReceipt);
+            
             if (CollectionUtils.isNotEmpty(response)) {
                 return new ResponseData<>(true, ErrorCode.SUCCESS);
             } else {
@@ -754,18 +717,21 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
                     weIdContractAddress,
                     privateKey,
                     WeIdContract.class);
-                Future<TransactionReceipt> future =
-                    weIdContract.setAttribute(
-                        new Address(WeIdUtils.convertWeIdToAddress(weId)),
-                        DataTypetUtils.stringToBytes32(
-                            WeIdConstant.WEID_DOC_SERVICE_PREFIX + "/" + serviceType),
-                        DataTypetUtils.stringToDynamicBytes(serviceEndpoint),
-                        DateUtils.getCurrentTimeStampInt256());
-
+                byte[] attrKey = new StringBuffer()
+                		.append(WeIdConstant.WEID_DOC_SERVICE_PREFIX)
+                		.append("/")
+                		.append(serviceType)
+                		.toString()
+                		.getBytes(); 
                 TransactionReceipt receipt =
-                    future.get(WeIdConstant.TRANSACTION_RECEIPT_TIMEOUT, TimeUnit.SECONDS);
+                    weIdContract.setAttribute(
+                        WeIdUtils.convertWeIdToAddress(weId),
+                        attrKey,
+                        serviceEndpoint.getBytes(),
+                        BigInteger.valueOf(System.currentTimeMillis())).send();
+
                 List<WeIdAttributeChangedEventResponse> response =
-                    WeIdContract.getWeIdAttributeChangedEvents(receipt);
+                		weIdContract.getWeIdAttributeChangedEvents(receipt);
                 if (CollectionUtils.isNotEmpty(response)) {
                     return new ResponseData<>(true, ErrorCode.SUCCESS);
                 } else {
@@ -831,21 +797,19 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
                     weIdContractAddress,
                     privateKey,
                     WeIdContract.class);
-                Future<TransactionReceipt> future =
-                    weIdContract.setAttribute(
-                        new Address(weAddress),
-                        DataTypetUtils.stringToBytes32(WeIdConstant.WEID_DOC_AUTHENTICATE_PREFIX),
-                        DataTypetUtils.stringToDynamicBytes(
-                            new StringBuffer()
-                                .append(setAuthenticationArgs.getPublicKey())
-                                .append("/")
-                                .append(owner)
-                                .toString()),
-                        DateUtils.getCurrentTimeStampInt256());
+                byte[] attrValue = new StringBuffer()
+                        .append(setAuthenticationArgs.getPublicKey())
+                        .append("/")
+                        .append(owner)
+                        .toString().getBytes();
                 TransactionReceipt receipt =
-                    future.get(WeIdConstant.TRANSACTION_RECEIPT_TIMEOUT, TimeUnit.SECONDS);
+                    weIdContract.setAttribute(
+                        weAddress,
+                        WeIdConstant.WEID_DOC_AUTHENTICATE_PREFIX.getBytes(),
+                        attrValue,
+                        BigInteger.valueOf(System.currentTimeMillis())).send();
                 List<WeIdAttributeChangedEventResponse> response =
-                    WeIdContract.getWeIdAttributeChangedEvents(receipt);
+                		weIdContract.getWeIdAttributeChangedEvents(receipt);
                 if (CollectionUtils.isNotEmpty(response)) {
                     return new ResponseData<>(true, ErrorCode.SUCCESS);
                 } else {
@@ -885,11 +849,9 @@ public class WeIdServiceImpl extends BaseService implements WeIdService {
             return new ResponseData<>(false, ErrorCode.WEID_INVALID);
         }
         try {
-            Bool isExist = weIdContract
-                .isIdentityExist(new Address(WeIdUtils.convertWeIdToAddress(weId)))
-                .get(WeIdConstant.TRANSACTION_RECEIPT_TIMEOUT, TimeUnit.SECONDS);
-            Boolean result = isExist.getValue();
-            return new ResponseData<>(result, ErrorCode.SUCCESS);
+            boolean isExist = weIdContract
+                .isIdentityExist(WeIdUtils.convertWeIdToAddress(weId)).send().booleanValue();
+            return new ResponseData<>(isExist, ErrorCode.SUCCESS);
         } catch (InterruptedException | ExecutionException e1) {
             return new ResponseData<>(false, ErrorCode.TRANSACTION_EXECUTE_ERROR);
         } catch (TimeoutException e) {

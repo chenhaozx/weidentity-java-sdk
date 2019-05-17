@@ -23,13 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import mockit.Mock;
-import mockit.MockUp;
-import org.bcos.web3j.abi.datatypes.Address;
-import org.bcos.web3j.abi.datatypes.DynamicArray;
-import org.bcos.web3j.abi.datatypes.generated.Bytes32;
-import org.bcos.web3j.abi.datatypes.generated.Uint8;
-import org.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.fisco.bcos.web3j.abi.datatypes.Address;
+import org.fisco.bcos.web3j.abi.datatypes.DynamicArray;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Bytes32;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Uint8;
+import org.fisco.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -43,6 +41,9 @@ import com.webank.weid.full.TestBaseServcie;
 import com.webank.weid.protocol.base.Credential;
 import com.webank.weid.protocol.response.CreateWeIdDataResult;
 import com.webank.weid.protocol.response.ResponseData;
+
+import mockit.Mock;
+import mockit.MockUp;
 
 /**
  * Test CreateEvidence.

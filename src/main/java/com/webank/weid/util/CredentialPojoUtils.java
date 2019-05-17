@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.bcos.web3j.abi.datatypes.generated.Bytes32;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Bytes32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

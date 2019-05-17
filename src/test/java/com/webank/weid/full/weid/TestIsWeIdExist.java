@@ -22,10 +22,8 @@ package com.webank.weid.full.weid;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
-import mockit.Mock;
-import mockit.MockUp;
-import org.bcos.web3j.abi.datatypes.Address;
-import org.bcos.web3j.abi.datatypes.Bool;
+import org.fisco.bcos.web3j.abi.datatypes.Address;
+import org.fisco.bcos.web3j.abi.datatypes.Bool;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -37,6 +35,9 @@ import com.webank.weid.contract.WeIdContract;
 import com.webank.weid.exception.WeIdBaseException;
 import com.webank.weid.full.TestBaseServcie;
 import com.webank.weid.protocol.response.ResponseData;
+
+import mockit.Mock;
+import mockit.MockUp;
 
 /**
  * isWeIdExist method for testing WeIdService.

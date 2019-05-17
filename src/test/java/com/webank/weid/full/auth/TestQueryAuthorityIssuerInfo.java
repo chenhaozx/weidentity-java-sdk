@@ -22,10 +22,8 @@ package com.webank.weid.full.auth;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import mockit.Mock;
-import mockit.MockUp;
-import org.bcos.web3j.abi.datatypes.Address;
-import org.bcos.web3j.abi.datatypes.Type;
+import org.fisco.bcos.web3j.abi.datatypes.Address;
+import org.fisco.bcos.web3j.abi.datatypes.Type;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -40,6 +38,9 @@ import com.webank.weid.protocol.base.AuthorityIssuer;
 import com.webank.weid.protocol.request.RemoveAuthorityIssuerArgs;
 import com.webank.weid.protocol.response.CreateWeIdDataResult;
 import com.webank.weid.protocol.response.ResponseData;
+
+import mockit.Mock;
+import mockit.MockUp;
 
 /**
  * queryAuthorityIssuerInfo method for testing AuthorityIssuerService.

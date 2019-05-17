@@ -24,6 +24,18 @@ import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.util.encoders.Base64;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Bytes32;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Uint8;
+import org.fisco.bcos.web3j.crypto.ECKeyPair;
+import org.fisco.bcos.web3j.crypto.Hash;
+import org.fisco.bcos.web3j.crypto.Keys;
+import org.fisco.bcos.web3j.crypto.Sign;
+import org.fisco.bcos.web3j.crypto.Sign.SignatureData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -35,18 +47,6 @@ import com.github.fge.jsonschema.core.report.ProcessingMessage;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import org.apache.commons.lang3.StringUtils;
-import org.bcos.web3j.abi.datatypes.generated.Bytes32;
-import org.bcos.web3j.abi.datatypes.generated.Uint8;
-import org.bcos.web3j.crypto.ECKeyPair;
-import org.bcos.web3j.crypto.Hash;
-import org.bcos.web3j.crypto.Keys;
-import org.bcos.web3j.crypto.Sign;
-import org.bcos.web3j.crypto.Sign.SignatureData;
-import org.bouncycastle.util.encoders.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.webank.weid.constant.ErrorCode;
 import com.webank.weid.constant.WeIdConstant;
 import com.webank.weid.protocol.base.AuthenticationProperty;
@@ -265,7 +265,7 @@ public final class DataToolUtils {
      * @return SignatureData
      */
     public static Sign.SignatureData signMessage(String message, ECKeyPair keyPair) {
-        return Sign.signMessage(sha3(message.getBytes(StandardCharsets.UTF_8)), keyPair);
+        return Sign.getSignInterface().signMessage(sha3(message.getBytes(StandardCharsets.UTF_8)), keyPair);
     }
 
     /**
@@ -282,7 +282,7 @@ public final class DataToolUtils {
 
         BigInteger privateKey = new BigInteger(privateKeyString);
         ECKeyPair keyPair = new ECKeyPair(privateKey, publicKeyFromPrivate(privateKey));
-        return Sign.signMessage(sha3(message.getBytes(StandardCharsets.UTF_8)), keyPair);
+        return Sign.getSignInterface().signMessage(sha3(message.getBytes(StandardCharsets.UTF_8)), keyPair);
     }
 
     /**

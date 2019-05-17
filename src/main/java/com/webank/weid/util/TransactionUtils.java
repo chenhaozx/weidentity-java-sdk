@@ -19,19 +19,10 @@
 
 package com.webank.weid.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Splitter;
-
-import com.webank.weid.constant.JsonSchemaConstant;
-import com.webank.weid.constant.ParamKeyConstant;
-import com.webank.weid.constant.WeIdConstant;
-import com.webank.weid.protocol.response.RsvSignature;
-import com.webank.weid.service.BaseService;
-
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -41,19 +32,28 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
-import org.bcos.web3j.abi.datatypes.Address;
-import org.bcos.web3j.abi.datatypes.DynamicBytes;
-import org.bcos.web3j.abi.datatypes.StaticArray;
-import org.bcos.web3j.abi.datatypes.Type;
-import org.bcos.web3j.abi.datatypes.generated.Bytes32;
-import org.bcos.web3j.abi.datatypes.generated.Int256;
-import org.bcos.web3j.protocol.Web3j;
-import org.bcos.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
-import org.bcos.web3j.protocol.core.methods.response.EthSendTransaction;
-import org.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.bcos.web3j.protocol.exceptions.TransactionTimeoutException;
+import org.fisco.bcos.web3j.abi.datatypes.Address;
+import org.fisco.bcos.web3j.abi.datatypes.DynamicBytes;
+import org.fisco.bcos.web3j.abi.datatypes.StaticArray;
+import org.fisco.bcos.web3j.abi.datatypes.Type;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Bytes32;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Int256;
+import org.fisco.bcos.web3j.protocol.Web3j;
+import org.fisco.bcos.web3j.protocol.core.methods.response.BcosTransactionReceipt;
+import org.fisco.bcos.web3j.protocol.core.methods.response.SendTransaction;
+import org.fisco.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.fisco.bcos.web3j.protocol.exceptions.TransactionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Splitter;
+import com.webank.weid.constant.JsonSchemaConstant;
+import com.webank.weid.constant.ParamKeyConstant;
+import com.webank.weid.constant.WeIdConstant;
+import com.webank.weid.protocol.response.RsvSignature;
+import com.webank.weid.service.BaseService;
 
 /**
  * Transaction related utility functions. This class handles specific Transaction tasks, including
@@ -79,7 +79,8 @@ public class TransactionUtils {
         if (web3j == null || StringUtils.isEmpty(transactionHex)) {
             return null;
         }
-        EthSendTransaction ethSendTransaction = web3j.ethSendRawTransaction(transactionHex)
+//        web3j.sendRawTransaction(transactionHex).sendAsync().get(WeIdConstant.TRANSACTION_RECEIPT_TIMEOUT, TimeUnit.SECONDS);
+        SendTransaction ethSendTransaction = web3j.sendRawTransaction(transactionHex)
             .sendAsync().get(WeIdConstant.TRANSACTION_RECEIPT_TIMEOUT, TimeUnit.SECONDS);
         if (ethSendTransaction.hasError()) {
             logger.error("Error processing transaction request: "
@@ -197,54 +198,54 @@ public class TransactionUtils {
      * @param inputParam the input Param json
      * @return the StaticArray
      */
-    public static List<Type> buildRegisterCptInputParameters(String inputParam) throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode inputParamNode = objectMapper.readTree(inputParam);
-        JsonNode weIdNode = inputParamNode.get(ParamKeyConstant.WEID);
-        JsonNode cptJsonSchemaNode = inputParamNode.get(ParamKeyConstant.CPT_JSON_SCHEMA);
-        JsonNode cptSignatureNode = inputParamNode.get(ParamKeyConstant.CPT_SIGNATURE);
-        if (weIdNode == null || cptJsonSchemaNode == null || cptSignatureNode == null) {
-            return null;
-        }
-
-        String weId = weIdNode.textValue();
-        if (!WeIdUtils.isWeIdValid(weId)) {
-            logger.error("Input cpt publisher : {} is invalid.", weId);
-            return null;
-        }
-
-        String cptJsonSchema = cptJsonSchemaNode.toString();
-        String cptJsonSchemaNew = complementCptJsonSchema(cptJsonSchema);
-        Map<String, Object> cptJsonSchemaMap = (HashMap<String, Object>) JsonUtil.jsonStrToObj(
-            new HashMap<String, Object>(),
-            cptJsonSchemaNew);
-        if (cptJsonSchemaMap == null
-            || cptJsonSchemaMap.isEmpty()
-            || !DataToolUtils.isCptJsonSchemaValid(cptJsonSchemaNew)) {
-            logger.error("Input cpt json schema : {} is invalid.", cptJsonSchemaNew);
-            return null;
-        }
-
-        String cptSignature = cptSignatureNode.textValue();
-        if (!DataToolUtils.isValidBase64String(cptSignature)) {
-            logger.error("Input cpt signature invalid: {}", cptSignature);
-            return null;
-        }
-        RsvSignature rsvSignature = DataToolUtils.convertSignatureDataToRsv(
-        		DataToolUtils.convertBase64StringToSignatureData(cptSignature));
-
-        StaticArray<Bytes32> bytes32Array = DataTypetUtils.stringArrayToBytes32StaticArray(
-            new String[WeIdConstant.CPT_STRING_ARRAY_LENGTH]
-        );
-        return Arrays.<Type>asList(
-            new Address(WeIdUtils.convertWeIdToAddress(weId)),
-            getParamCreated(WeIdConstant.CPT_LONG_ARRAY_LENGTH),
-            bytes32Array,
-            getParamJsonSchema(cptJsonSchemaNew),
-            rsvSignature.getV(),
-            rsvSignature.getR(),
-            rsvSignature.getS());
-    }
+//    public static List<Type> buildRegisterCptInputParameters(String inputParam) throws Exception {
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        JsonNode inputParamNode = objectMapper.readTree(inputParam);
+//        JsonNode weIdNode = inputParamNode.get(ParamKeyConstant.WEID);
+//        JsonNode cptJsonSchemaNode = inputParamNode.get(ParamKeyConstant.CPT_JSON_SCHEMA);
+//        JsonNode cptSignatureNode = inputParamNode.get(ParamKeyConstant.CPT_SIGNATURE);
+//        if (weIdNode == null || cptJsonSchemaNode == null || cptSignatureNode == null) {
+//            return null;
+//        }
+//
+//        String weId = weIdNode.textValue();
+//        if (!WeIdUtils.isWeIdValid(weId)) {
+//            logger.error("Input cpt publisher : {} is invalid.", weId);
+//            return null;
+//        }
+//
+//        String cptJsonSchema = cptJsonSchemaNode.toString();
+//        String cptJsonSchemaNew = complementCptJsonSchema(cptJsonSchema);
+//        Map<String, Object> cptJsonSchemaMap = (HashMap<String, Object>) JsonUtil.jsonStrToObj(
+//            new HashMap<String, Object>(),
+//            cptJsonSchemaNew);
+//        if (cptJsonSchemaMap == null
+//            || cptJsonSchemaMap.isEmpty()
+//            || !DataToolUtils.isCptJsonSchemaValid(cptJsonSchemaNew)) {
+//            logger.error("Input cpt json schema : {} is invalid.", cptJsonSchemaNew);
+//            return null;
+//        }
+//
+//        String cptSignature = cptSignatureNode.textValue();
+//        if (!DataToolUtils.isValidBase64String(cptSignature)) {
+//            logger.error("Input cpt signature invalid: {}", cptSignature);
+//            return null;
+//        }
+//        RsvSignature rsvSignature = DataToolUtils.convertSignatureDataToRsv(
+//        		DataToolUtils.convertBase64StringToSignatureData(cptSignature));
+//
+//        StaticArray<Bytes32> bytes32Array = DataTypetUtils.stringArrayToBytes32StaticArray(
+//            new String[WeIdConstant.CPT_STRING_ARRAY_LENGTH]
+//        );
+//        return Arrays.<Type>asList(
+//            new Address(WeIdUtils.convertWeIdToAddress(weId)),
+//            getParamCreated(WeIdConstant.CPT_LONG_ARRAY_LENGTH),
+//            bytes32Array,
+//            getParamJsonSchema(cptJsonSchemaNew),
+//            rsvSignature.getV(),
+//            rsvSignature.getR(),
+//            rsvSignature.getS());
+//    }
 
     /**
      * Complement the cpt json schema json string, enforcing keys to present: @schema and type.
@@ -275,6 +276,18 @@ public class TransactionUtils {
         longArray[0] = created;
         return DataTypetUtils.longArrayToInt256StaticArray(longArray);
     }
+    
+    /**
+     * Get the current timestamp as the param "created". May be called elsewhere.
+     *
+     * @return the StaticArray
+     */
+    public static List<BigInteger> getParamCreatedList(int length) {
+        long created = System.currentTimeMillis();
+        List<BigInteger> createdList = new ArrayList<>();
+        createdList.add(BigInteger.valueOf(created));
+        return createdList;
+    }
 
     /**
      * Get the cpt json schema as the param "cptJsonSchema".
@@ -282,16 +295,16 @@ public class TransactionUtils {
      * @param cptJsonSchema the cptJsonSchema String
      * @return the StaticArray
      */
-    public static StaticArray<Bytes32> getParamJsonSchema(String cptJsonSchema) {
+    public static List<byte[]> getParamJsonSchema(String cptJsonSchema) {
 
         List<String> stringList = Splitter
             .fixedLength(WeIdConstant.BYTES32_FIXED_LENGTH)
             .splitToList(cptJsonSchema);
-        String[] jsonSchemaArray = new String[WeIdConstant.JSON_SCHEMA_ARRAY_LENGTH];
+        List<byte[]> jsonSchemaArray = new ArrayList<byte[]>();
         for (int i = 0; i < stringList.size(); i++) {
-            jsonSchemaArray[i] = stringList.get(i);
+        	jsonSchemaArray.add(stringList.get(i).getBytes());
         }
-        return DataTypetUtils.stringArrayToBytes32StaticArray(jsonSchemaArray);
+        return jsonSchemaArray;
     }
 
     /**
@@ -304,8 +317,7 @@ public class TransactionUtils {
      */
     private static Optional<TransactionReceipt> getTransactionReceiptRequest(Web3j web3j,
         String transactionHash) throws Exception {
-        EthGetTransactionReceipt transactionReceipt =
-            web3j.ethGetTransactionReceipt(transactionHash).send();
+        BcosTransactionReceipt transactionReceipt = web3j.getTransactionReceipt(transactionHash).send();
         if (transactionReceipt.hasError()) {
             logger.error("Error processing transaction request: "
                 + transactionReceipt.getError().getMessage());
@@ -331,7 +343,7 @@ public class TransactionUtils {
      */
     public static BigInteger getBlockLimit() {
         try {
-            return BaseService.getWeb3j().ethBlockNumber().send().getBlockNumber()
+            return BaseService.getWeb3j().getBlockNumber().send().getBlockNumber()
                 .add(new BigInteger(String.valueOf(WeIdConstant.ADDITIVE_BLOCK_HEIGHT)));
         } catch (Exception e) {
             //Send a large enough block limit number

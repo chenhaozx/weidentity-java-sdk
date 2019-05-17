@@ -24,20 +24,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.bcos.web3j.abi.datatypes.Address;
-import org.bcos.web3j.abi.datatypes.DynamicArray;
-import org.bcos.web3j.abi.datatypes.Type;
-import org.bcos.web3j.abi.datatypes.generated.Bytes32;
-import org.bcos.web3j.abi.datatypes.generated.Uint8;
-import org.bcos.web3j.crypto.Keys;
-import org.bcos.web3j.crypto.Sign;
-import org.bcos.web3j.crypto.Sign.SignatureData;
-import org.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.fisco.bcos.web3j.abi.datatypes.Address;
+import org.fisco.bcos.web3j.crypto.Keys;
+import org.fisco.bcos.web3j.crypto.Sign;
+import org.fisco.bcos.web3j.crypto.Sign.SignatureData;
+import org.fisco.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.fisco.bcos.web3j.tuples.generated.Tuple6;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -58,7 +53,6 @@ import com.webank.weid.rpc.WeIdService;
 import com.webank.weid.service.BaseService;
 import com.webank.weid.util.CredentialUtils;
 import com.webank.weid.util.DataToolUtils;
-import com.webank.weid.util.DataTypetUtils;
 import com.webank.weid.util.WeIdUtils;
 
 /**
@@ -124,38 +118,32 @@ public class EvidenceServiceImpl extends BaseService implements EvidenceService 
             String credentialHash = CredentialUtils.getCredentialHash(credential);
             String credentialHashOnChain = credentialHash
                 .replaceAll(WeIdConstant.HEX_PREFIX, StringUtils.EMPTY);
-            List<String> hashAttributes = new ArrayList<>();
+            List<byte[]> hashAttributes = new ArrayList<>();
             hashAttributes.add(
-                credentialHashOnChain.substring(0, WeIdConstant.BYTES32_FIXED_LENGTH));
+                credentialHashOnChain.substring(0, WeIdConstant.BYTES32_FIXED_LENGTH).getBytes());
             hashAttributes.add(
                 credentialHashOnChain.substring(
                     WeIdConstant.BYTES32_FIXED_LENGTH,
                     WeIdConstant.BYTES32_FIXED_LENGTH * 2
-                ));
-            List<String> extraValueList = new ArrayList<>();
-            extraValueList.add(StringUtils.EMPTY);
+                ).getBytes());
+            List<byte[]> extraValueList = new ArrayList<>();
+            extraValueList.add(StringUtils.EMPTY.getBytes());
             Sign.SignatureData sigData = DataToolUtils
                 .signMessage(credentialHash, weIdPrivateKey.getPrivateKey());
-            Bytes32 r = DataTypetUtils.bytesArrayToBytes32(sigData.getR());
-            Bytes32 s = DataTypetUtils.bytesArrayToBytes32(sigData.getS());
-            Uint8 v = DataTypetUtils.intToUnt8(Integer.valueOf(sigData.getV()));
-            List<Address> signer = new ArrayList<>();
-            signer.add(new Address(Keys.getAddress(DataToolUtils
-                .createKeyPairFromPrivate(new BigInteger(weIdPrivateKey.getPrivateKey())))));
-            Future<TransactionReceipt> future = evidenceFactory.createEvidence(
-                new DynamicArray<Bytes32>(generateBytes32List(hashAttributes)),
-                new DynamicArray<Address>(signer),
-                r,
-                s,
-                v,
-                new DynamicArray<Bytes32>(generateBytes32List(extraValueList))
-            );
+            List<String> signer = new ArrayList<>();
+            signer.add(Keys.getAddress(DataToolUtils
+                .createKeyPairFromPrivate(new BigInteger(weIdPrivateKey.getPrivateKey()))));
+            TransactionReceipt receipt = evidenceFactory.createEvidence(
+                hashAttributes,
+                signer,
+                sigData.getR(),
+                sigData.getS(),
+                BigInteger.valueOf(sigData.getV()),
+                extraValueList
+            ).send();
 
-            TransactionReceipt receipt = future.get(
-                WeIdConstant.TRANSACTION_RECEIPT_TIMEOUT,
-                TimeUnit.SECONDS);
             List<CreateEvidenceLogEventResponse> eventResponseList =
-                EvidenceFactory.getCreateEvidenceLogEvents(receipt);
+            		evidenceFactory.getCreateEvidenceLogEvents(receipt);
             CreateEvidenceLogEventResponse event = eventResponseList.get(0);
 
             if (event != null) {
@@ -186,14 +174,6 @@ public class EvidenceServiceImpl extends BaseService implements EvidenceService 
         }
     }
 
-    private List<Bytes32> generateBytes32List(List<String> bytes32List) {
-        int desiredLength = bytes32List.size();
-        List<Bytes32> finalList = new ArrayList<>();
-        for (int i = 0; i < desiredLength; i++) {
-            finalList.add(DataTypetUtils.stringToBytes32(bytes32List.get(i)));
-        }
-        return finalList;
-    }
 
     /**
      * Get the evidence from blockchain.
@@ -212,40 +192,37 @@ public class EvidenceServiceImpl extends BaseService implements EvidenceService 
         Evidence evidence = (Evidence) getContractService(evidenceAddress, Evidence.class);
 
         try {
-            List<Type> rawResult =
-                evidence.getInfo()
-                    .get(WeIdConstant.TRANSACTION_RECEIPT_TIMEOUT, TimeUnit.SECONDS);
+        	Tuple6<List<byte[]>,List<String>,List<byte[]>,List<byte[]>,List<BigInteger>,List<byte[]>> rawResult =
+                evidence.getInfo().send();
             if (rawResult == null) {
                 return new ResponseData<>(null, ErrorCode.CREDENTIAL_EVIDENCE_BASE_ERROR);
             }
 
-            List<Bytes32> credentialHashList = ((DynamicArray<Bytes32>) rawResult.get(0))
-                .getValue();
-            List<Address> issuerList = ((DynamicArray<Address>) rawResult.get(1)).getValue();
+            List<byte[]> credentialHashList = rawResult.getValue1();
+            List<String> issuerList = rawResult.getValue2();
 
             EvidenceInfo evidenceInfoData = new EvidenceInfo();
             evidenceInfoData.setCredentialHash(
-                WeIdConstant.HEX_PREFIX + DataTypetUtils
-                    .bytes32ToString(credentialHashList.get(0))
-                    + DataTypetUtils.bytes32ToString(credentialHashList.get(1)));
+                WeIdConstant.HEX_PREFIX + new String(credentialHashList.get(0))
+                    + new String(credentialHashList.get(1)));
 
             List<String> signerStringList = new ArrayList<>();
-            for (Address addr : issuerList) {
-                signerStringList.add(addr.toString());
+            for (String addr : issuerList) {
+                signerStringList.add(addr);
             }
             evidenceInfoData.setSigners(signerStringList);
 
             List<String> signaturesList = new ArrayList<>();
-            List<Bytes32> rlist = ((DynamicArray<Bytes32>) rawResult.get(2)).getValue();
-            List<Bytes32> slist = ((DynamicArray<Bytes32>) rawResult.get(3)).getValue();
-            List<Uint8> vlist = ((DynamicArray<Uint8>) rawResult.get(4)).getValue();
+            List<byte[]> rlist = rawResult.getValue3();
+            List<byte[]> slist = rawResult.getValue4();
+            List<BigInteger> vlist = rawResult.getValue5();
             byte v;
             byte[] r;
             byte[] s;
             for (int index = 0; index < rlist.size(); index++) {
-                v = (byte) (vlist.get(index).getValue().intValue());
-                r = rlist.get(index).getValue();
-                s = slist.get(index).getValue();
+                v = (byte) (vlist.get(index).intValue());
+                r = rlist.get(index);
+                s = slist.get(index);
                 SignatureData sigData = new SignatureData(v, r, s);
                 signaturesList.add(new String(
                 		DataToolUtils
@@ -347,7 +324,7 @@ public class EvidenceServiceImpl extends BaseService implements EvidenceService 
         if (event.retCode == null || event.addr == null) {
             return ErrorCode.ILLEGAL_INPUT;
         }
-        Integer eventRetCode = event.retCode.getValue().intValue();
+        Integer eventRetCode = event.retCode.intValue();
         if (eventRetCode
             .equals(ErrorCode.CREDENTIAL_EVIDENCE_CONTRACT_FAILURE_ILLEAGAL_INPUT.getCode())) {
             return ErrorCode.CREDENTIAL_EVIDENCE_CONTRACT_FAILURE_ILLEAGAL_INPUT;

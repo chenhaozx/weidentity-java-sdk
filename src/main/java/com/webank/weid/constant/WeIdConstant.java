@@ -37,12 +37,12 @@ public final class WeIdConstant {
     /**
      * The Constant GAS_PRICE.
      */
-    public static final BigInteger GAS_PRICE = new BigInteger("99999999999");
+    public static final BigInteger GAS_PRICE = new BigInteger("300000000");
 
     /**
      * The Constant GAS_LIMIT.
      */
-    public static final BigInteger GAS_LIMIT = new BigInteger("9999999999999");
+    public static final BigInteger GAS_LIMIT = new BigInteger("300000000");
 
     /**
      * The Constant INIIIAL_VALUE.

@@ -22,11 +22,9 @@ package com.webank.weid.full.weid;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import mockit.Mock;
-import mockit.MockUp;
 import org.apache.commons.lang3.StringUtils;
-import org.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.bcos.web3j.tx.Contract;
+import org.fisco.bcos.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.fisco.bcos.web3j.tx.Contract;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -44,6 +42,9 @@ import com.webank.weid.full.TestBaseUtil;
 import com.webank.weid.protocol.request.CreateWeIdArgs;
 import com.webank.weid.protocol.response.ResponseData;
 import com.webank.weid.service.BaseService;
+
+import mockit.Mock;
+import mockit.MockUp;
 
 /**
  * a parametric createWeId method for testing WeIdService.

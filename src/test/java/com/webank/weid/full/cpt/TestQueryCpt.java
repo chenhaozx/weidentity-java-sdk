@@ -22,12 +22,10 @@ package com.webank.weid.full.cpt;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import mockit.Mock;
-import mockit.MockUp;
-import org.bcos.web3j.abi.datatypes.DynamicArray;
-import org.bcos.web3j.abi.datatypes.Type;
-import org.bcos.web3j.abi.datatypes.generated.Bytes32;
-import org.bcos.web3j.abi.datatypes.generated.Uint256;
+import org.fisco.bcos.web3j.abi.datatypes.DynamicArray;
+import org.fisco.bcos.web3j.abi.datatypes.Type;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Bytes32;
+import org.fisco.bcos.web3j.abi.datatypes.generated.Uint256;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -45,6 +43,9 @@ import com.webank.weid.protocol.base.CptBaseInfo;
 import com.webank.weid.protocol.request.CptMapArgs;
 import com.webank.weid.protocol.response.ResponseData;
 import com.webank.weid.util.DataTypetUtils;
+
+import mockit.Mock;
+import mockit.MockUp;
 
 /**
  * queryCpt method for testing CptService.
