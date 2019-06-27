@@ -28,6 +28,10 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+    maven { url "https://dl.bintray.com/ethereum/maven/" }
+    maven {
         url "http://maven.aliyun.com/nexus/content/groups/public/"
     }
 }
@@ -66,16 +70,12 @@ List json = [
 ]
 
 List weidentity_contract = [
-    "com.webank:weidentity-contract-java:1.2.2"
+    "com.webank:weid-contract-java:1.2.3-SNAPSHOT"
 ]
 
 List mysql_driver = [
     "mysql:mysql-connector-java:5.1.44",
     "org.apache.commons:commons-dbcp2:2.5.0"
-]
-
-List web3sdk = [
-    "org.fisco-bcos:web3sdk:1.2.5"
 ]
 
 List zxing = [
@@ -84,12 +84,7 @@ List zxing = [
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
-    compile logger, lombok, apache_commons, json, mysql_driver, zxing
-    compile files('lib/weidentity-contract-java-1.3.0.jar')
-    compile("org.fisco-bcos:web3sdk-weid:2.0.3"){
-    	exclude group:"io.netty"
-    }
-	compile("org.fisco-bcos:web3sdk:1.2.5")
+    compile logger, lombok, apache_commons, json, weidentity_contract, mysql_driver, zxing
     testCompile logger, lombok, apache_commons, json, junit, jmockit
 }
 
