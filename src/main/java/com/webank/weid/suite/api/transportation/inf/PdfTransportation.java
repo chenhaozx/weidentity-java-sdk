@@ -54,7 +54,8 @@ public interface PdfTransportation {
      */
     <T extends JsonSerializer> ResponseData<OutputStream> serialize(
         T object,
-        ProtocolProperty property
+        ProtocolProperty property,
+        WeIdAuthentication weIdAuthentication
     );
 
     
@@ -72,7 +73,8 @@ public interface PdfTransportation {
     <T extends JsonSerializer> ResponseData<OutputStream> serialize(
         T object,
         ProtocolProperty property,
-        String inputPDFTemplatePath
+        String inputPDFTemplatePath,
+        WeIdAuthentication weIdAuthentication
     );
 
     
